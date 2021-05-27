@@ -1,4 +1,7 @@
 import torch
+from torch_geometric.nn.models import JumpingKnowledge
+
+from models.gat import GAT
 
 
 def mean_average_distance(x, mask=None):
@@ -59,3 +62,17 @@ def influence_distribution(x, h):
 
     # jacob_xy =
     # I[x, y] = torch.dot(torch.dot(torch.transpose(e, 0, 1), jacob_xy), e)
+
+
+def create_jumping_knowledge_net(
+    mode='cat',  # 'max', 'lstm'
+    channels=None,  # only for lstm
+    num_layers=None,  # only for lstm
+):
+    return JumpingKnowledge(mode, channels, num_layers)
+
+
+def create_gat(
+    num_classes, num_features, nhid=8, first_heads=8, output_heads=1, dropout=0.6
+):
+    return GAT(num_classes, num_features, nhid, first_heads, output_heads, dropout)
