@@ -1,78 +1,32 @@
+import os
+import pandas as pd
 import torch
-from torch_geometric.nn.models import JumpingKnowledge
+import torch.nn as nn
+import yaml
 
-from models.gat import GAT
 
-
-def mean_average_distance(x, mask=None):
-    '''
-    Computes cosine similarity between each pair of node representations
+def save_experiment(path: str, model: nn.Module, outs: pd.DataFrame, config: dict, comment: str):
+    """
     Args:
-        x (torch.tensor): node features
-        mask (torch.tensor): mask matrix composed of 0 and 1 only if the node pair (i,j) is the target one.
-    '''
+        - path: directory for the experiment
+        - model: trained torch model
+        - outs: data frame of the results (loss, accuracy, and other metrics)
+        - config: dictionary of the hyperparameters
+        - comment: what is special about this experiment (more is always better)
+    """
+    # create the folder
+    os.mkdir(path)
 
-    MAD_num = 0
-    MAD_den = 0
+    # save the model
+    torch.save(model, path + "model.pt")
 
-    for i in range(x.size(0)):
-        D_avg_num = 0
-        D_avg_den = 0
-        for j in range(i):
-            cos_sim = 0
-            if mask == None or (mask != None and mask[i, j]):
-                cos_sim = 1 - \
-                    torch.dot(x[i, :], x[j, :]) / (torch.norm(x[i, :])
-                                                   * torch.norm(x[j, :]) + 1e-16)
-            D_avg_num += cos_sim
-            D_avg_den += 1 if cos_sim > 0 else 0
+    # save the config
+    with open(path + "data.yml", "w") as outfile:
+        yaml.dump(config, outfile, default_flow_style=False)
 
-        if D_avg_den:
-            D_avg = D_avg_num / D_avg_den
-            MAD_num += D_avg_num
-            MAD_den += 1 if D_avg > 0 else 0
+    pd.to_csv(outs, path + "outs.csv")
 
-    MAD = MAD_num / MAD_den
-    return MAD
+    with open(path + "comment.txt", "w") as f:
+        f.write(comment)
 
-
-def mean_average_distance_gap(x, adj_matrix):
-    '''
-    Computes MADGap: MAD_remote - MAD_neighbors
-    Args:
-        x (torch.tensor): input feature matrix
-        adj_matrix (torch.tensor): adjacency matrix
-    '''
-    MAD_rem = mean_average_distance(x, mask=1-adj_matrix)
-    MAD_neb = mean_average_distance(x, mask=adj_matrix)
-
-    return MAD_rem - MAD_neb
-
-
-def influence_distribution(x, h):
-    '''
-    Computes influence distribution
-    ...math: I_x(y) = e^T \left[ \frac{ \partial h_x^{(k)} }{ \partial h_y^{(0)} } \right] e / \left( \sum_{z \in V} e^T \left[ \frac{ \partial h_x^{(k)} }{ \partial h_z^{(0)} } \right] e \right)
-
-    Args:
-        h (torch.tensor): hidden feature matrix
-        x (torch.tensor): input feature matrix
-    '''
-    e = torch.ones(x.size(1), 1)
-
-    # jacob_xy =
-    # I[x, y] = torch.dot(torch.dot(torch.transpose(e, 0, 1), jacob_xy), e)
-
-
-def create_jumping_knowledge_net(
-    mode='cat',  # 'max', 'lstm'
-    channels=None,  # only for lstm
-    num_layers=None,  # only for lstm
-):
-    return JumpingKnowledge(mode, channels, num_layers)
-
-
-def create_gat(
-    num_classes, num_features, nhid=8, first_heads=8, output_heads=1, dropout=0.6
-):
-    return GAT(num_classes, num_features, nhid, first_heads, output_heads, dropout)
+    print("Done")
