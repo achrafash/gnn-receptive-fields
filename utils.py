@@ -27,6 +27,7 @@ def save_experiment(path: str, model: torch.nn.Module, outs: pd.DataFrame, confi
     outs.to_csv(path + "logs.csv", index=False)
 
     with open(path + "comment.txt", "w") as f:
+        f.write(model.__repr__())
         f.write(comment)
         
     print("Done")
