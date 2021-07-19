@@ -28,10 +28,9 @@ def save_experiment(path: str, model: torch.nn.Module, outs: pd.DataFrame, confi
 
     with open(path + "comment.txt", "w") as f:
         f.write(comment)
-
-    !zip -r out.zip $path
-    
+        
     print("Done")
+    return
 
 
 def load_experiment(path:str):
