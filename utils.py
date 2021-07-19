@@ -5,7 +5,7 @@ import torch.nn as nn
 import yaml
 
 
-def save_experiment(path: str, model: nn.Module, outs: pd.DataFrame, config: dict, comment: str):
+def save_experiment(path: str, model: torch.nn.Module, outs: pd.DataFrame, config: dict, comment: str):
     """
     Args:
         - path: directory for the experiment
@@ -21,12 +21,26 @@ def save_experiment(path: str, model: nn.Module, outs: pd.DataFrame, config: dic
     torch.save(model, path + "model.pt")
 
     # save the config
-    with open(path + "data.yml", "w") as outfile:
+    with open(path + "config.yml", "w") as outfile:
         yaml.dump(config, outfile, default_flow_style=False)
 
-    outs.to_csv(path + "outs.csv")
+    outs.to_csv(path + "logs.csv", index=False)
 
     with open(path + "comment.txt", "w") as f:
         f.write(comment)
 
+    !zip -r out.zip $path
+    
     print("Done")
+
+
+def load_experiment(path:str):
+    # load model
+    model = torch.load(path+'model.pt')
+    # load configs
+    with open(path + "config.yml", "r") as stream:
+        config = yaml.full_load(stream)
+    # load logs
+    logs = pd.read_csv(path+'logs.csv')
+
+    return model, config, logs
