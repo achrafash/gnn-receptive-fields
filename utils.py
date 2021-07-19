@@ -24,7 +24,7 @@ def save_experiment(path: str, model: nn.Module, outs: pd.DataFrame, config: dic
     with open(path + "data.yml", "w") as outfile:
         yaml.dump(config, outfile, default_flow_style=False)
 
-    pd.to_csv(outs, path + "outs.csv")
+    outs.to_csv(path + "outs.csv")
 
     with open(path + "comment.txt", "w") as f:
         f.write(comment)
