@@ -1,4 +1,4 @@
-from torch_geometric.datasets import Planetoid, TUDataset, PPI, QM9, Amazon, Reddit2
+from torch_geometric.datasets import Planetoid, TUDataset, PPI, QM9, Amazon, Reddit
 
 
 def load_dataset(path, name, transform=None, params=None):
@@ -11,6 +11,7 @@ def load_dataset(path, name, transform=None, params=None):
         - 'ENZYMES'
         - 'QM9'
         - 'Amazon'
+        - 'Reddit'
     '''
 
     if name == 'Cora':
@@ -32,4 +33,4 @@ def load_dataset(path, name, transform=None, params=None):
             goods = 'Computers'
         return Amazon(path, name=goods, transform=transform)
     elif name == 'Reddit':
-        return Reddit2(path, transform=transform)
+        return Reddit(path, transform=transform)
